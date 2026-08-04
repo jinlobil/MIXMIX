@@ -92,6 +92,14 @@ class FrontendFormattingTests(unittest.TestCase):
         self.assertIn("prompts.map(prompt=>prompt.id===editingId?item:prompt)", app)
         self.assertIn('id="savePromptButton"', html)
 
+    def test_prompt_cards_prioritize_taller_images_and_hide_prompt_excerpt(self):
+        root = Path(__file__).resolve().parents[2]
+        app = (root / "frontend" / "app.js").read_text(encoding="utf-8")
+        styles = (root / "frontend" / "styles.css").read_text(encoding="utf-8")
+        self.assertNotIn('<p>${escapeHtml(p.prompt)}</p>', app)
+        self.assertIn("aspect-ratio:4/3", styles)
+        self.assertIn("object-position:center top", styles)
+
 
 if __name__ == "__main__":
     unittest.main()

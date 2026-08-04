@@ -24,7 +24,7 @@ function renderCards(){
   $('#emptyState').hidden=shown.length>0;
   $('#promptGrid').innerHTML=shown.map(p=>`<article class="prompt-card ${selected[p.category]===p.id?'selected':''}" data-id="${p.id}" tabindex="0">
     <div class="card-image">${p.images?.[0]?`<img src="${p.images[0]}" alt="${escapeHtml(p.title)} 레퍼런스" />`:`<div class="placeholder-art" style="background:${p.tone||'linear-gradient(135deg,#bca798,#6b625d)'}">${p.title.charAt(0)}</div>`}${p.images?.length>1?`<span class="card-badge">+${p.images.length-1}</span>`:''}</div>
-    <div class="card-actions"><button class="edit-card" data-edit="${p.id}" aria-label="수정">✎</button><button class="delete-card" data-delete="${p.id}" aria-label="삭제">×</button></div><div class="card-body"><h3>${escapeHtml(p.title)}</h3><p>${escapeHtml(p.prompt)}</p></div></article>`).join('');
+    <div class="card-actions"><button class="edit-card" data-edit="${p.id}" aria-label="수정">✎</button><button class="delete-card" data-delete="${p.id}" aria-label="삭제">×</button></div><div class="card-body"><h3>${escapeHtml(p.title)}</h3></div></article>`).join('');
 }
 function buildCombinedPrompt(){
   return categories.map(([id,name])=>{
