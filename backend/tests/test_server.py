@@ -72,5 +72,16 @@ class WindowsBatchTests(unittest.TestCase):
         self.assertIn("http://127.0.0.1:4173", content)
 
 
+class FrontendFormattingTests(unittest.TestCase):
+    def test_combined_prompt_has_category_headers_and_blank_lines(self):
+        root = Path(__file__).resolve().parents[2]
+        app = (root / "frontend" / "app.js").read_text(encoding="utf-8")
+        styles = (root / "frontend" / "styles.css").read_text(encoding="utf-8")
+        self.assertIn("`[${name}]\\n${item.prompt}`", app)
+        self.assertIn(".filter(Boolean).join('\\n\\n')", app)
+        self.assertIn("const text=buildCombinedPrompt()", app)
+        self.assertIn("white-space:pre-wrap", styles)
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -26,9 +26,15 @@ function renderCards(){
     <div class="card-image">${p.images?.[0]?`<img src="${p.images[0]}" alt="${escapeHtml(p.title)} 레퍼런스" />`:`<div class="placeholder-art" style="background:${p.tone||'linear-gradient(135deg,#bca798,#6b625d)'}">${p.title.charAt(0)}</div>`}${p.images?.length>1?`<span class="card-badge">+${p.images.length-1}</span>`:''}</div>
     <button class="delete-card" data-delete="${p.id}" aria-label="삭제">×</button><div class="card-body"><h3>${escapeHtml(p.title)}</h3><p>${escapeHtml(p.prompt)}</p></div></article>`).join('');
 }
+function buildCombinedPrompt(){
+  return categories.map(([id,name])=>{
+    const item=prompts.find(prompt=>prompt.id===selected[id]);
+    return item?`[${name}]\n${item.prompt}`:'';
+  }).filter(Boolean).join('\n\n');
+}
 function renderSelections(){
   $('#selectionList').innerHTML=categories.map(([id,name])=>{const p=prompts.find(item=>item.id===selected[id]);return `<div class="selection-row ${p?'':'empty'}"><span class="selection-category">${name.split(' · ')[0]}</span><span class="selection-value">${p?escapeHtml(p.title):'선택 안 함'}</span>${p?`<button class="remove-selection" data-remove="${id}">×</button>`:'<span></span>'}</div>`}).join('');
-  const combined=categories.map(([id])=>prompts.find(p=>p.id===selected[id])?.prompt).filter(Boolean).join(', ');
+  const combined=buildCombinedPrompt();
   $('#combinedPrompt').textContent=combined||'카드를 선택하면 이곳에 조합된 프롬프트가 표시됩니다.';
   $('#charCount').textContent=`${combined.length} chars`;
 }
@@ -49,7 +55,7 @@ $('#closeDialog').addEventListener('click',()=>$('#promptDialog').close());$('#c
 $('#formImages').addEventListener('change',async e=>{const files=[...e.target.files].slice(0,3);if([...e.target.files].length>3)showToast('이미지는 최대 3장까지 저장할 수 있어요');pendingImages=[];for(const file of files){if(file.size>10*1024*1024){showToast(`${file.name}: 10MB를 초과했어요`);continue}pendingImages.push(await new Promise(resolve=>{const r=new FileReader();r.onload=()=>resolve(r.result);r.readAsDataURL(file)}))}$('#imagePreview').innerHTML=pendingImages.map(src=>`<img src="${src}" alt="업로드 미리보기" />`).join('')});
 $('#promptForm').addEventListener('submit',async e=>{e.preventDefault();prompts.unshift({id:crypto.randomUUID(),category:$('#formCategory').value,title:$('#formTitle').value.trim(),prompt:$('#formPrompt').value.trim(),images:pendingImages});activeCategory=$('#formCategory').value;await persist();$('#promptDialog').close();render();showToast('새 프롬프트를 저장했어요')});
 $('#clearButton').addEventListener('click',()=>{selected={};render();showToast('선택을 모두 비웠어요')});
-$('#copyButton').addEventListener('click',async()=>{const text=categories.map(([id])=>prompts.find(p=>p.id===selected[id])?.prompt).filter(Boolean).join(', ');if(!text){showToast('먼저 프롬프트를 선택해 주세요');return}await navigator.clipboard.writeText(text);showToast('클립보드에 복사했어요')});
+$('#copyButton').addEventListener('click',async()=>{const text=buildCombinedPrompt();if(!text){showToast('먼저 프롬프트를 선택해 주세요');return}await navigator.clipboard.writeText(text);showToast('클립보드에 복사했어요')});
 $('#themeButton').addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light')});
 async function init(){
   const response=await fetch('/api/prompts');
