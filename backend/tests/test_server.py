@@ -82,6 +82,16 @@ class FrontendFormattingTests(unittest.TestCase):
         self.assertIn("const text=buildCombinedPrompt()", app)
         self.assertIn("white-space:pre-wrap", styles)
 
+    def test_prompt_editor_supports_metadata_and_image_changes(self):
+        root = Path(__file__).resolve().parents[2]
+        app = (root / "frontend" / "app.js").read_text(encoding="utf-8")
+        html = (root / "frontend" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("data-edit", app)
+        self.assertIn("editingId=prompt?.id||null", app)
+        self.assertIn("data-remove-image", app)
+        self.assertIn("prompts.map(prompt=>prompt.id===editingId?item:prompt)", app)
+        self.assertIn('id="savePromptButton"', html)
+
 
 if __name__ == "__main__":
     unittest.main()
