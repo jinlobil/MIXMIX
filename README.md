@@ -11,7 +11,19 @@
 
 SQLite나 별도 데이터베이스를 사용하지 않습니다. 사진은 JSON에 Base64로 넣지 않고 개별 파일로 보관하며, `prompts.json`에는 `/uploads/<UUID 파일명>` 형태의 매핑 경로만 기록합니다.
 
-## 실행
+## Windows에서 가장 간단한 실행
+
+1. 최초 한 번 `install.bat`을 더블클릭합니다.
+   - Python 3.10 이상과 Node.js 18 이상의 설치 여부 및 버전을 확인합니다.
+   - 없거나 버전이 낮으면 Windows `winget`으로 Python 3.12와 Node.js LTS를 설치합니다.
+2. 설치 확인이 끝나면 `start.bat`을 더블클릭합니다.
+   - Python 백엔드와 Node.js 프런트엔드를 함께 실행합니다.
+   - 서버 준비 후 브라우저에서 웹사이트를 자동으로 엽니다.
+3. 종료하려면 실행 창에서 `Ctrl+C`를 누릅니다.
+
+> `winget`이 없는 Windows에서는 `install.bat`이 Microsoft의 **앱 설치 관리자** 설치 안내를 표시합니다.
+
+## 터미널에서 실행
 
 필요한 것은 **Python 3.10 이상**과 **Node.js 18 이상**뿐입니다. 외부 패키지 설치는 필요 없습니다.
 

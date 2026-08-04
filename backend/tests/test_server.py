@@ -53,5 +53,23 @@ class StorageTests(unittest.TestCase):
             server.save_prompts([self.prompt(["x"] * 4)])
 
 
+class WindowsBatchTests(unittest.TestCase):
+    def test_installer_checks_versions_and_uses_winget(self):
+        root = Path(__file__).resolve().parents[2]
+        content = (root / "install.bat").read_text(encoding="utf-8")
+        self.assertIn("sys.version_info >= (3, 10)", content)
+        self.assertIn("process.versions.node", content)
+        self.assertIn("Python.Python.3.12", content)
+        self.assertIn("OpenJS.NodeJS.LTS", content)
+        self.assertIn("where winget", content)
+
+    def test_start_batch_validates_environment_and_runs_app(self):
+        root = Path(__file__).resolve().parents[2]
+        content = (root / "start.bat").read_text(encoding="utf-8")
+        self.assertIn("sys.version_info >= (3, 10)", content)
+        self.assertIn("npm start", content)
+        self.assertIn("http://127.0.0.1:4173", content)
+
+
 if __name__ == "__main__":
     unittest.main()
