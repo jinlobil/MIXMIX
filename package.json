@@ -1,9 +1,11 @@
 {
-  "name": "prompt-atelier",
-  "version": "1.0.0",
+  "name": "prompt-atelier-local",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
-    "start": "python3 -m http.server 4173",
-    "test": "node --test"
+    "start": "node scripts/start-local.js",
+    "start:frontend": "node frontend/server.js",
+    "start:backend": "python3 backend/server.py",
+    "test": "python3 -m unittest discover -s backend/tests -v"
   }
 }
