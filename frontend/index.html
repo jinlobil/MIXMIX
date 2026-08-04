@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#f4f1ec" />
+  <title>Prompt Atelier — 나만의 이미지 프롬프트 아카이브</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise"></div>
+  <header class="topbar">
+    <a class="brand" href="#"><span class="brand-mark">P</span><span>Prompt Atelier</span></a>
+    <div class="top-actions">
+      <span class="save-state"><span class="status-dot"></span> 로컬에 안전하게 저장됨</span>
+      <button class="icon-button" id="themeButton" aria-label="테마 전환">◐</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <p class="eyebrow">MY VISUAL PROMPT LIBRARY</p>
+        <h1>흩어진 영감을 모아,<br><em>한 문장의 장면</em>으로.</h1>
+      </div>
+      <p class="hero-copy">카테고리별 프롬프트와 레퍼런스를 차곡차곡 보관하세요.<br>원하는 조각을 골라 완성도 높은 이미지 프롬프트를 만들 수 있어요.</p>
+    </section>
+
+    <section class="workspace">
+      <aside class="categories-panel">
+        <div class="panel-heading">
+          <div><span class="step">01</span><h2>카테고리</h2></div>
+          <span id="libraryCount" class="count">0 saved</span>
+        </div>
+        <nav id="categoryList" class="category-list" aria-label="프롬프트 카테고리"></nav>
+        <button id="addPromptButton" class="primary-button"><span>＋</span> 새 프롬프트 추가</button>
+      </aside>
+
+      <section class="library-panel">
+        <div class="panel-heading library-heading">
+          <div><span class="step">02</span><h2><span id="activeCategory">얼굴</span> 프롬프트</h2></div>
+          <div class="view-tools">
+            <label class="search"><span>⌕</span><input id="searchInput" type="search" placeholder="프롬프트 검색" /></label>
+          </div>
+        </div>
+        <div id="promptGrid" class="prompt-grid"></div>
+        <div id="emptyState" class="empty-state" hidden>
+          <div class="empty-icon">✦</div><h3>아직 저장된 프롬프트가 없어요</h3><p>첫 번째 영감 조각을 추가해 보세요.</p>
+          <button class="text-button" id="emptyAddButton">프롬프트 추가하기 →</button>
+        </div>
+      </section>
+
+      <aside class="composer-panel">
+        <div class="panel-heading">
+          <div><span class="step">03</span><h2>프롬프트 조합</h2></div>
+          <button id="clearButton" class="clear-button">전체 비우기</button>
+        </div>
+        <p class="composer-guide">각 카테고리에서 하나씩 선택해<br>당신만의 장면을 완성하세요.</p>
+        <div id="selectionList" class="selection-list"></div>
+        <div class="result-box">
+          <div class="result-label"><span>COMBINED PROMPT</span><span id="charCount">0 chars</span></div>
+          <p id="combinedPrompt">카드를 선택하면 이곳에 조합된 프롬프트가 표시됩니다.</p>
+          <button id="copyButton" class="copy-button"><span>▣</span> 프롬프트 복사</button>
+        </div>
+      </aside>
+    </section>
+  </main>
+
+  <dialog id="promptDialog">
+    <form id="promptForm" method="dialog">
+      <div class="modal-head"><div><p class="eyebrow">ADD TO LIBRARY</p><h2>새 프롬프트 저장</h2></div><button type="button" id="closeDialog" class="modal-close" aria-label="닫기">×</button></div>
+      <label>카테고리<select id="formCategory" required></select></label>
+      <label>이름<input id="formTitle" maxlength="40" required placeholder="예: 투명한 여름 메이크업" /></label>
+      <label>프롬프트<textarea id="formPrompt" maxlength="800" required rows="5" placeholder="이미지 생성에 사용할 프롬프트를 입력하세요"></textarea></label>
+      <div class="upload-section">
+        <div class="upload-title"><span>레퍼런스 이미지</span><small>최대 3장 · 각 10MB 이하</small></div>
+        <label class="dropzone" for="formImages"><span class="upload-icon">↥</span><strong>사진을 선택하세요</strong><small>JPG, PNG, WEBP</small></label>
+        <input id="formImages" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden />
+        <div id="imagePreview" class="image-preview"></div>
+      </div>
+      <div class="modal-actions"><button type="button" id="cancelDialog" class="secondary-button">취소</button><button type="submit" class="primary-button">라이브러리에 저장</button></div>
+    </form>
+  </dialog>
+  <div id="toast" class="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
