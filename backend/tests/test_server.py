@@ -97,7 +97,7 @@ class FrontendFormattingTests(unittest.TestCase):
         app = (root / "frontend" / "app.js").read_text(encoding="utf-8")
         styles = (root / "frontend" / "styles.css").read_text(encoding="utf-8")
         self.assertNotIn('<p>${escapeHtml(p.prompt)}</p>', app)
-        self.assertIn("aspect-ratio:4/3", styles)
+        self.assertIn("aspect-ratio:3/4", styles)
         self.assertIn("object-position:center top", styles)
 
 
