@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=4" />
 </head>
 <body>
   <div class="noise"></div>
@@ -33,10 +33,9 @@
       <aside class="categories-panel">
         <div class="panel-heading">
           <div><span class="step">01</span><h2>카테고리</h2></div>
-          <span id="libraryCount" class="count">0 saved</span>
+          <div class="category-heading-actions"><span id="libraryCount" class="count">0 saved</span><button id="manageCategoriesButton" class="category-manage-button">⚙ 관리</button></div>
         </div>
         <nav id="categoryList" class="category-list" aria-label="프롬프트 카테고리"></nav>
-        <button id="manageCategoriesButton" class="secondary-button category-manage-button">⚙ 카테고리 관리</button>
         <button id="addPromptButton" class="primary-button"><span>＋</span> 새 프롬프트 추가</button>
       </aside>
 
@@ -85,7 +84,7 @@
       <div class="modal-head"><div><p class="eyebrow" id="dialogEyebrow">ADD TO LIBRARY</p><h2 id="dialogTitle">새 프롬프트 저장</h2></div><button type="button" id="closeDialog" class="modal-close" aria-label="닫기">×</button></div>
       <label>카테고리<select id="formCategory" required></select></label>
       <label>이름<input id="formTitle" maxlength="40" required placeholder="예: 투명한 여름 메이크업" /></label>
-      <label>프롬프트<textarea id="formPrompt" maxlength="800" required rows="5" placeholder="이미지 생성에 사용할 프롬프트를 입력하세요"></textarea></label>
+      <label>프롬프트 <span id="promptLength" class="field-counter">0 / 5,000</span><textarea id="formPrompt" maxlength="5000" required rows="8" placeholder="이미지 생성에 사용할 프롬프트를 입력하세요"></textarea></label>
       <div class="upload-section">
         <div class="upload-title"><span>레퍼런스 이미지</span><small>최대 3장 · 각 10MB 이하</small></div>
         <label class="dropzone" for="formImages"><span class="upload-icon">↥</span><strong>사진을 선택하세요</strong><small>JPG, PNG, WEBP</small></label>
@@ -96,6 +95,6 @@
     </form>
   </dialog>
   <div id="toast" class="toast" role="status"></div>
-  <script src="app.js"></script>
+  <script src="app.js?v=4"></script>
 </body>
 </html>

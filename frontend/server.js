@@ -29,7 +29,7 @@ const server = http.createServer(async (req, res) => {
     const file = path.resolve(ROOT, relative);
     if (!file.startsWith(`${ROOT}${path.sep}`)) throw Object.assign(new Error(), {code:'FORBIDDEN'});
     const content = await fs.readFile(file);
-    res.writeHead(200, {'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream'});
+    res.writeHead(200, {'Content-Type': TYPES[path.extname(file)] || 'application/octet-stream', 'Cache-Control':'no-store, max-age=0'});
     res.end(content);
   } catch (error) {
     res.writeHead(error.code === 'FORBIDDEN' ? 403 : 404, {'Content-Type':'text/plain; charset=utf-8'});

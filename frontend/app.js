@@ -66,6 +66,7 @@ function openDialog(prompt=null){
   $('#formCategory').value=prompt?.category||activeCategory;
   $('#formTitle').value=prompt?.title||'';
   $('#formPrompt').value=prompt?.prompt||'';
+  updatePromptLength();
   $('#dialogEyebrow').textContent=prompt?'EDIT LIBRARY ITEM':'ADD TO LIBRARY';
   $('#dialogTitle').textContent=prompt?'프롬프트 수정':'새 프롬프트 저장';
   $('#savePromptButton').textContent=prompt?'변경사항 저장':'라이브러리에 저장';
@@ -106,6 +107,8 @@ $('#selectionList').addEventListener('click',e=>{const b=e.target.closest('[data
 $('#searchInput').addEventListener('input',renderCards);
 $('#addPromptButton').addEventListener('click',openDialog);$('#emptyAddButton').addEventListener('click',openDialog);
 $('#closeDialog').addEventListener('click',()=>$('#promptDialog').close());$('#cancelDialog').addEventListener('click',()=>$('#promptDialog').close());
+function updatePromptLength(){$('#promptLength').textContent=`${$('#formPrompt').value.length.toLocaleString()} / 5,000`}
+$('#formPrompt').addEventListener('input',updatePromptLength);
 $('#formImages').addEventListener('change',async e=>{
   const available=3-pendingImages.length;
   const files=[...e.target.files].slice(0,available);

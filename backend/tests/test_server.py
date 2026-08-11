@@ -120,6 +120,16 @@ class FrontendFormattingTests(unittest.TestCase):
         self.assertIn("addCategoryButton", app)
         self.assertIn("data-delete-category", app)
         self.assertIn('id="categoryDialog"', html)
+        self.assertIn('id="manageCategoriesButton"', html)
+
+    def test_prompt_input_allows_5000_characters_and_assets_are_not_cached(self):
+        root = Path(__file__).resolve().parents[2]
+        html = (root / "frontend" / "index.html").read_text(encoding="utf-8")
+        server_source = (root / "frontend" / "server.js").read_text(encoding="utf-8")
+        self.assertIn('maxlength="5000"', html)
+        self.assertIn('id="promptLength"', html)
+        self.assertIn('Cache-Control', server_source)
+        self.assertIn('no-store', server_source)
 
 
 if __name__ == "__main__":
