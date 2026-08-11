@@ -18,12 +18,18 @@ ROOT = Path(__file__).resolve().parent
 STORAGE = ROOT / "storage"
 IMAGE_DIR = STORAGE / "images"
 PROMPTS_FILE = STORAGE / "prompts.json"
+CATEGORIES_FILE = STORAGE / "categories.json"
 HOST = os.getenv("BACKEND_HOST", "127.0.0.1")
 PORT = int(os.getenv("BACKEND_PORT", "8000"))
 MAX_REQUEST_BYTES = 32 * 1024 * 1024
 DATA_URL = re.compile(r"^data:(image/(?:jpeg|png|webp));base64,(.+)$", re.DOTALL)
 EXTENSIONS = {"image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp"}
-CATEGORIES = {"face", "hair", "top", "bottom", "shoes", "accessory", "quality", "place", "pose", "composition"}
+DEFAULT_CATEGORIES = [
+    ["face", "얼굴 · 메이크업", "◉"], ["hair", "헤어", "⌇"], ["top", "상의", "♢"],
+    ["bottom", "하의", "▽"], ["shoes", "신발", "⌁"], ["accessory", "악세사리", "✦"],
+    ["quality", "화질", "▦"], ["place", "장소", "⌂"], ["pose", "자세", "人"],
+    ["composition", "구도", "⊞"],
+]
 
 
 def load_prompts() -> list[dict]:
@@ -35,16 +41,48 @@ def load_prompts() -> list[dict]:
     return value
 
 
-def atomic_json_write(value: list[dict]) -> None:
+def atomic_json_write(value: object, target: Path | None = None) -> None:
+    target = target or PROMPTS_FILE
     STORAGE.mkdir(parents=True, exist_ok=True)
-    fd, temporary = tempfile.mkstemp(prefix="prompts-", suffix=".tmp", dir=STORAGE)
+    fd, temporary = tempfile.mkstemp(prefix=f"{target.stem}-", suffix=".tmp", dir=STORAGE)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as stream:
             json.dump(value, stream, ensure_ascii=False, indent=2)
-        os.replace(temporary, PROMPTS_FILE)
+        os.replace(temporary, target)
     finally:
         if os.path.exists(temporary):
             os.unlink(temporary)
+
+
+def load_categories() -> list[list[str]]:
+    if not CATEGORIES_FILE.exists():
+        return [item.copy() for item in DEFAULT_CATEGORIES]
+    value = json.loads(CATEGORIES_FILE.read_text(encoding="utf-8"))
+    validate_categories(value)
+    return value
+
+
+def validate_categories(value: object) -> None:
+    if not isinstance(value, list) or not value:
+        raise ValueError("at least one category is required")
+    ids: set[str] = set()
+    for item in value:
+        if not isinstance(item, list) or len(item) != 3 or not all(isinstance(part, str) for part in item):
+            raise ValueError("invalid category")
+        category_id, name, icon = item
+        if not category_id.strip() or not name.strip() or not icon.strip() or category_id in ids:
+            raise ValueError("category id, name, and icon must be unique/non-empty")
+        ids.add(category_id)
+
+
+def save_categories(value: object) -> list[list[str]]:
+    validate_categories(value)
+    category_ids = {item[0] for item in value}
+    used_ids = {prompt["category"] for prompt in load_prompts()}
+    if not used_ids.issubset(category_ids):
+        raise ValueError("cannot remove a category that still has prompts")
+    atomic_json_write(value, CATEGORIES_FILE)
+    return value
 
 
 def validate_prompt(prompt: object) -> None:
@@ -53,7 +91,7 @@ def validate_prompt(prompt: object) -> None:
     for field in ("id", "category", "title", "prompt"):
         if not isinstance(prompt.get(field), str) or not prompt[field].strip():
             raise ValueError(f"{field} is required")
-    if prompt["category"] not in CATEGORIES:
+    if prompt["category"] not in {item[0] for item in load_categories()}:
         raise ValueError("unknown category")
     images = prompt.get("images", [])
     if not isinstance(images, list) or len(images) > 3:
@@ -133,6 +171,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self.json_response(200, {"ok": True, "storage": "json"})
             if path == "/api/prompts":
                 return self.json_response(200, load_prompts())
+            if path == "/api/categories":
+                return self.json_response(200, load_categories())
             if path.startswith("/uploads/"):
                 name = Path(unquote(path)).name
                 target = IMAGE_DIR / name
@@ -151,14 +191,16 @@ class Handler(BaseHTTPRequestHandler):
             self.json_response(500, {"error": str(error)})
 
     def do_PUT(self) -> None:
-        if urlparse(self.path).path != "/api/prompts":
+        path = urlparse(self.path).path
+        if path not in {"/api/prompts", "/api/categories"}:
             return self.json_response(404, {"error": "not found"})
         try:
             length = int(self.headers.get("Content-Length", "0"))
             if length <= 0 or length > MAX_REQUEST_BYTES:
                 return self.json_response(413, {"error": "request is too large"})
             incoming = json.loads(self.rfile.read(length))
-            self.json_response(200, save_prompts(incoming))
+            saved = save_categories(incoming) if path == "/api/categories" else save_prompts(incoming)
+            self.json_response(200, saved)
         except (ValueError, json.JSONDecodeError) as error:
             self.json_response(400, {"error": str(error)})
         except OSError as error:

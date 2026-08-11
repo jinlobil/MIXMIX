@@ -1,4 +1,5 @@
 backend/storage/prompts.json
+backend/storage/categories.json
 backend/storage/prompts-*.tmp
 backend/storage/images/*
 !backend/storage/images/.gitkeep

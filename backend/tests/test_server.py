@@ -17,6 +17,7 @@ class StorageTests(unittest.TestCase):
             patch.object(server, "STORAGE", self.storage),
             patch.object(server, "IMAGE_DIR", self.storage / "images"),
             patch.object(server, "PROMPTS_FILE", self.storage / "prompts.json"),
+            patch.object(server, "CATEGORIES_FILE", self.storage / "categories.json"),
         ]
         for item in self.patches:
             item.start()
@@ -51,6 +52,17 @@ class StorageTests(unittest.TestCase):
     def test_rejects_more_than_three_images(self):
         with self.assertRaisesRegex(ValueError, "up to 3"):
             server.save_prompts([self.prompt(["x"] * 4)])
+
+    def test_categories_are_saved_to_separate_json(self):
+        categories = [["custom", "커스텀", "◇"]]
+        self.assertEqual(server.save_categories(categories), categories)
+        self.assertEqual(server.load_categories(), categories)
+        self.assertTrue(server.CATEGORIES_FILE.is_file())
+
+    def test_category_in_use_cannot_be_removed_before_prompts(self):
+        server.save_prompts([self.prompt()])
+        with self.assertRaisesRegex(ValueError, "still has prompts"):
+            server.save_categories([["hair", "헤어", "⌇"]])
 
 
 class WindowsBatchTests(unittest.TestCase):
@@ -99,6 +111,15 @@ class FrontendFormattingTests(unittest.TestCase):
         self.assertNotIn('<p>${escapeHtml(p.prompt)}</p>', app)
         self.assertIn("aspect-ratio:3/4", styles)
         self.assertIn("object-position:center top", styles)
+
+    def test_category_manager_supports_add_rename_and_delete(self):
+        root = Path(__file__).resolve().parents[2]
+        app = (root / "frontend" / "app.js").read_text(encoding="utf-8")
+        html = (root / "frontend" / "index.html").read_text(encoding="utf-8")
+        self.assertIn("persistCategories", app)
+        self.assertIn("addCategoryButton", app)
+        self.assertIn("data-delete-category", app)
+        self.assertIn('id="categoryDialog"', html)
 
 
 if __name__ == "__main__":

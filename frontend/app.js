@@ -1,4 +1,4 @@
-const categories = [
+let categories = [
   ['face','얼굴 · 메이크업','◉'],['hair','헤어','⌇'],['top','상의','♢'],['bottom','하의','▽'],['shoes','신발','⌁'],
   ['accessory','악세사리','✦'],['quality','화질','▦'],['place','장소','⌂'],['pose','자세','人'],['composition','구도','⊞']
 ];
@@ -17,6 +17,8 @@ function renderCategories(){
   $('#categoryList').innerHTML=categories.map(([id,name,icon])=>`<button class="category-button ${activeCategory===id?'active':''}" data-category="${id}"><span class="category-icon">${icon}</span><span class="category-name">${name}</span><span class="category-num">${prompts.filter(p=>p.category===id).length}</span></button>`).join('');
   $('#activeCategory').textContent=categories.find(c=>c[0]===activeCategory)[1];
   $('#libraryCount').textContent=`${prompts.length} saved`;
+  const select=$('#formCategory');
+  if(select){const current=select.value;select.innerHTML=categories.map(([id,name])=>`<option value="${id}">${escapeHtml(name)}</option>`).join('');select.value=categories.some(([id])=>id===current)?current:activeCategory}
 }
 function renderCards(){
   const query=$('#searchInput').value.trim().toLowerCase();
@@ -44,6 +46,15 @@ async function persist(){
   if(!response.ok)throw new Error((await response.json()).error||'server save failed');
   prompts=await response.json();
 }
+async function persistCategories(){
+  const response=await fetch('/api/categories',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(categories)});
+  if(!response.ok)throw new Error((await response.json()).error||'category save failed');
+  categories=await response.json();
+}
+function renderCategoryEditor(){
+  $('#categoryEditorList').innerHTML=categories.map(([id,name,icon])=>`<div class="category-editor-row" data-category-row="${id}"><input class="category-icon-input" maxlength="2" value="${escapeHtml(icon)}" aria-label="아이콘" /><input class="category-name-input" maxlength="30" value="${escapeHtml(name)}" aria-label="카테고리 이름" /><button type="button" data-delete-category="${id}" aria-label="카테고리 삭제">×</button></div>`).join('');
+}
+function openCategoryDialog(){renderCategoryEditor();$('#categoryDialog').showModal()}
 function showToast(message){const toast=$('#toast');toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1800)}
 function renderImagePreview(){
   $('#imagePreview').innerHTML=pendingImages.map((src,index)=>`<div class="preview-item"><img src="${src}" alt="레퍼런스 미리보기" /><button type="button" data-remove-image="${index}" aria-label="사진 삭제">×</button></div>`).join('');
@@ -61,6 +72,28 @@ function openDialog(prompt=null){
   renderImagePreview();
   $('#promptDialog').showModal();
 }
+$('#manageCategoriesButton').addEventListener('click',openCategoryDialog);
+$('#closeCategoryDialog').addEventListener('click',()=>$('#categoryDialog').close());
+$('#cancelCategoryDialog').addEventListener('click',()=>$('#categoryDialog').close());
+$('#addCategoryButton').addEventListener('click',()=>{categories.push([`custom-${crypto.randomUUID()}`,'새 카테고리','◇']);renderCategoryEditor()});
+$('#categoryEditorList').addEventListener('click',e=>{
+  const button=e.target.closest('[data-delete-category]');if(!button)return;
+  if(categories.length===1){showToast('카테고리는 최소 1개가 필요해요');return}
+  const count=prompts.filter(prompt=>prompt.category===button.dataset.deleteCategory).length;
+  if(count&&!confirm(`이 카테고리의 프롬프트 ${count}개도 함께 삭제할까요?`))return;
+  prompts=prompts.filter(prompt=>prompt.category!==button.dataset.deleteCategory);
+  delete selected[button.dataset.deleteCategory];
+  categories=categories.filter(([id])=>id!==button.dataset.deleteCategory);
+  renderCategoryEditor();
+});
+$('#saveCategoriesButton').addEventListener('click',async()=>{
+  const rows=[...document.querySelectorAll('[data-category-row]')];
+  categories=rows.map(row=>[row.dataset.categoryRow,row.querySelector('.category-name-input').value.trim(),row.querySelector('.category-icon-input').value.trim()||'◇']);
+  if(categories.some(([,name])=>!name)){showToast('카테고리 이름을 입력해 주세요');return}
+  await persist();await persistCategories();
+  if(!categories.some(([id])=>id===activeCategory))activeCategory=categories[0][0];
+  $('#categoryDialog').close();render();showToast('카테고리를 저장했어요');
+});
 $('#categoryList').addEventListener('click',e=>{const button=e.target.closest('[data-category]');if(!button)return;activeCategory=button.dataset.category;render()});
 $('#promptGrid').addEventListener('click',async e=>{
   const edit=e.target.closest('[data-edit]');
@@ -97,10 +130,11 @@ $('#clearButton').addEventListener('click',()=>{selected={};render();showToast('
 $('#copyButton').addEventListener('click',async()=>{const text=buildCombinedPrompt();if(!text){showToast('먼저 프롬프트를 선택해 주세요');return}await navigator.clipboard.writeText(text);showToast('클립보드에 복사했어요')});
 $('#themeButton').addEventListener('click',()=>{document.body.classList.toggle('dark');localStorage.setItem('theme',document.body.classList.contains('dark')?'dark':'light')});
 async function init(){
-  const response=await fetch('/api/prompts');
-  if(!response.ok)throw new Error('server load failed');
-  const stored=await response.json();
-  prompts=stored.length?stored:seedPrompts;
+  const [promptResponse,categoryResponse]=await Promise.all([fetch('/api/prompts'),fetch('/api/categories')]);
+  if(!promptResponse.ok||!categoryResponse.ok)throw new Error('server load failed');
+  categories=await categoryResponse.json();
+  const stored=await promptResponse.json();
+  prompts=stored.length?stored:seedPrompts.filter(prompt=>categories.some(([id])=>id===prompt.category));
   if(!stored.length)await persist();
   if(localStorage.getItem('theme')==='dark')document.body.classList.add('dark');$('#formCategory').innerHTML=categories.map(([id,name])=>`<option value="${id}">${name}</option>`).join('');render()}
 init().catch(error=>{prompts=seedPrompts;$('#formCategory').innerHTML=categories.map(([id,name])=>`<option value="${id}">${name}</option>`).join('');render();showToast(`백엔드 오류: ${error.message}`)});

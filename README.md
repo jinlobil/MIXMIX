@@ -7,9 +7,10 @@
 - **백엔드:** Python 표준 라이브러리 HTTP API (`backend/server.py`)
 - **프런트엔드:** Node.js 정적 서버 및 API 프록시 (`frontend/server.js`) + JavaScript UI
 - **프롬프트 저장:** `backend/storage/prompts.json`
+- **카테고리 저장:** `backend/storage/categories.json`
 - **사진 저장:** `backend/storage/images/`
 
-SQLite나 별도 데이터베이스를 사용하지 않습니다. 사진은 JSON에 Base64로 넣지 않고 개별 파일로 보관하며, `prompts.json`에는 `/uploads/<UUID 파일명>` 형태의 매핑 경로만 기록합니다.
+SQLite나 별도 데이터베이스를 사용하지 않습니다. 카테고리는 화면의 **카테고리 관리**에서 추가·이름 수정·삭제할 수 있습니다. 사진은 JSON에 Base64로 넣지 않고 개별 파일로 보관하며, `prompts.json`에는 `/uploads/<UUID 파일명>` 형태의 매핑 경로만 기록합니다.
 
 ## Windows에서 가장 간단한 실행
 
@@ -52,6 +53,7 @@ npm run start:frontend
 ```text
 backend/storage/
 ├── prompts.json
+├── categories.json
 └── images/
     ├── 0ea64f086ab04d53a8499d86fe64bd33.jpg
     └── b4acaaeb71d8464489f22bdf0c697151.webp

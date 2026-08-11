@@ -36,6 +36,7 @@
           <span id="libraryCount" class="count">0 saved</span>
         </div>
         <nav id="categoryList" class="category-list" aria-label="프롬프트 카테고리"></nav>
+        <button id="manageCategoriesButton" class="secondary-button category-manage-button">⚙ 카테고리 관리</button>
         <button id="addPromptButton" class="primary-button"><span>＋</span> 새 프롬프트 추가</button>
       </aside>
 
@@ -68,6 +69,16 @@
       </aside>
     </section>
   </main>
+
+  <dialog id="categoryDialog" class="category-dialog">
+    <form method="dialog">
+      <div class="modal-head"><div><p class="eyebrow">MANAGE LIBRARY</p><h2>카테고리 관리</h2></div><button type="button" id="closeCategoryDialog" class="modal-close" aria-label="닫기">×</button></div>
+      <p class="category-help">이름을 수정하거나 새 카테고리를 추가하세요. 카테고리를 삭제하면 그 안의 프롬프트도 함께 삭제됩니다.</p>
+      <div id="categoryEditorList" class="category-editor-list"></div>
+      <button type="button" id="addCategoryButton" class="secondary-button add-category-button">＋ 카테고리 추가</button>
+      <div class="modal-actions"><button type="button" id="cancelCategoryDialog" class="secondary-button">취소</button><button type="button" id="saveCategoriesButton" class="primary-button">변경사항 저장</button></div>
+    </form>
+  </dialog>
 
   <dialog id="promptDialog">
     <form id="promptForm" method="dialog">
