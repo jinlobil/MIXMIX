@@ -121,6 +121,10 @@ class FrontendFormattingTests(unittest.TestCase):
         self.assertIn("data-delete-category", app)
         self.assertIn('id="categoryDialog"', html)
         self.assertIn('id="manageCategoriesButton"', html)
+        self.assertIn('draggable="true"', app)
+        self.assertIn("dragstart", app)
+        self.assertIn("dragover", app)
+        self.assertIn("categoryValuesFromEditor", app)
 
     def test_prompt_input_allows_5000_characters_and_assets_are_not_cached(self):
         root = Path(__file__).resolve().parents[2]

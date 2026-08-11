@@ -51,8 +51,11 @@ async function persistCategories(){
   if(!response.ok)throw new Error((await response.json()).error||'category save failed');
   categories=await response.json();
 }
+function categoryValuesFromEditor(){
+  return [...document.querySelectorAll('[data-category-row]')].map(row=>[row.dataset.categoryRow,row.querySelector('.category-name-input').value.trim(),row.querySelector('.category-icon-input').value.trim()||'◇']);
+}
 function renderCategoryEditor(){
-  $('#categoryEditorList').innerHTML=categories.map(([id,name,icon])=>`<div class="category-editor-row" data-category-row="${id}"><input class="category-icon-input" maxlength="2" value="${escapeHtml(icon)}" aria-label="아이콘" /><input class="category-name-input" maxlength="30" value="${escapeHtml(name)}" aria-label="카테고리 이름" /><button type="button" data-delete-category="${id}" aria-label="카테고리 삭제">×</button></div>`).join('');
+  $('#categoryEditorList').innerHTML=categories.map(([id,name,icon])=>`<div class="category-editor-row" data-category-row="${id}"><span class="category-drag-handle" draggable="true" title="드래그하여 순서 변경" aria-label="카테고리 순서 변경">⋮⋮</span><input class="category-icon-input" maxlength="2" value="${escapeHtml(icon)}" aria-label="아이콘" /><input class="category-name-input" maxlength="30" value="${escapeHtml(name)}" aria-label="카테고리 이름" /><button type="button" data-delete-category="${id}" aria-label="카테고리 삭제">×</button></div>`).join('');
 }
 function openCategoryDialog(){renderCategoryEditor();$('#categoryDialog').showModal()}
 function showToast(message){const toast=$('#toast');toast.textContent=message;toast.classList.add('show');setTimeout(()=>toast.classList.remove('show'),1800)}
@@ -76,7 +79,26 @@ function openDialog(prompt=null){
 $('#manageCategoriesButton').addEventListener('click',openCategoryDialog);
 $('#closeCategoryDialog').addEventListener('click',()=>$('#categoryDialog').close());
 $('#cancelCategoryDialog').addEventListener('click',()=>$('#categoryDialog').close());
-$('#addCategoryButton').addEventListener('click',()=>{categories.push([`custom-${crypto.randomUUID()}`,'새 카테고리','◇']);renderCategoryEditor()});
+$('#addCategoryButton').addEventListener('click',()=>{categories=categoryValuesFromEditor();categories.push([`custom-${crypto.randomUUID()}`,'새 카테고리','◇']);renderCategoryEditor()});
+let draggedCategoryRow=null;
+$('#categoryEditorList').addEventListener('dragstart',e=>{
+  if(!e.target.closest('.category-drag-handle'))return;
+  draggedCategoryRow=e.target.closest('[data-category-row]');
+  draggedCategoryRow.classList.add('dragging');
+  e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',draggedCategoryRow.dataset.categoryRow);
+});
+$('#categoryEditorList').addEventListener('dragover',e=>{
+  if(!draggedCategoryRow)return;e.preventDefault();
+  const target=e.target.closest('[data-category-row]');
+  if(!target||target===draggedCategoryRow)return;
+  const after=e.clientY>target.getBoundingClientRect().top+target.offsetHeight/2;
+  target.parentNode.insertBefore(draggedCategoryRow,after?target.nextSibling:target);
+});
+$('#categoryEditorList').addEventListener('dragend',()=>{
+  if(!draggedCategoryRow)return;
+  draggedCategoryRow.classList.remove('dragging');draggedCategoryRow=null;
+  categories=categoryValuesFromEditor();
+});
 $('#categoryEditorList').addEventListener('click',e=>{
   const button=e.target.closest('[data-delete-category]');if(!button)return;
   if(categories.length===1){showToast('카테고리는 최소 1개가 필요해요');return}
@@ -88,8 +110,7 @@ $('#categoryEditorList').addEventListener('click',e=>{
   renderCategoryEditor();
 });
 $('#saveCategoriesButton').addEventListener('click',async()=>{
-  const rows=[...document.querySelectorAll('[data-category-row]')];
-  categories=rows.map(row=>[row.dataset.categoryRow,row.querySelector('.category-name-input').value.trim(),row.querySelector('.category-icon-input').value.trim()||'◇']);
+  categories=categoryValuesFromEditor();
   if(categories.some(([,name])=>!name)){showToast('카테고리 이름을 입력해 주세요');return}
   await persist();await persistCategories();
   if(!categories.some(([id])=>id===activeCategory))activeCategory=categories[0][0];
